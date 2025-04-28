@@ -1,0 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+/* Dans ton fichier tailwind.css */
+html {
+    scroll-behavior: smooth;
+  }
+  
