@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PublicSurveyController;
 use Illuminate\Http\Request;
@@ -29,14 +30,18 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     
     // Exemples de routes sécurisées
-    //Route::get('/survey/questions', [PublicSurveyController::class, 'questions'])->middleware('role:user');
-    //Route::post('/survey/submit', [PublicSurveyController::class, 'submit'])->middleware('role:user');
-    //Route::get('/survey/result/{token}', [PublicSurveyController::class, 'result'])->middleware('role:user');
-    //Route::get('/admin/dashboard', [AdminController::class, 'dashboard']);
+    
+
 });
 
 
-Route::get('/survey/questions', [PublicSurveyController::class, 'questions'])->middleware('role:user');
+Route::get('/survey/questions', [PublicSurveyController::class, 'questions']);
 Route::post('/survey/submit', [PublicSurveyController::class, 'submit']);
 Route::get('/survey/result/{token}', [PublicSurveyController::class, 'result']);
+Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(function () {
+    Route::get('/dashboard', [AdminController::class, 'getDashboardData']);
+    Route::get('/questions', [AdminController::class, 'getAllQuestions']);
+    Route::get('/responses', [AdminController::class, 'getAllResponses']);
+});
+
 
