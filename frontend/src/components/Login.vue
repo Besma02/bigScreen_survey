@@ -35,60 +35,64 @@
     </p>
   </div>
 </template>
-
 <script>
+import { useToast } from 'vue-toastification'
+
 export default {
   data() {
     return {
-      email: "",
-      password: "",
-    };
+      email: '',
+      password: '',
+    }
   },
   methods: {
     async login() {
+      const toast = useToast()
+
       const credentials = {
         email: this.email,
         password: this.password,
-      };
+      }
 
       try {
-        const response = await fetch("http://localhost:8000/api/login", {
-          method: "POST",
+        const response = await fetch('http://localhost:8000/api/login', {
+          method: 'POST',
           headers: {
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
           },
           body: JSON.stringify(credentials),
-        });
+        })
 
-        const data = await response.json();
+        const data = await response.json()
 
         if (data.access_token) {
-          // Utilisez 'commit' pour appeler les mutations
-          this.$store.commit("setUser", data.user);
-          this.$store.commit("setToken", data.access_token);
-          // ⬇️ Ajout pour que le token soit persistant
-          localStorage.setItem("token", data.access_token);
+          this.$store.commit('setUser', data.user)
+          this.$store.commit('setToken', data.access_token)
+          localStorage.setItem('token', data.access_token)
 
-          // Vérifiez si l'utilisateur est admin et redirigez en conséquence
-          if (data.user.role === "admin") {
-            this.$router.push("/dashboard");
+          // ✅ Toast de succès
+          toast.success('Login successful!')
+
+          if (data.user.role === 'admin') {
+            this.$router.push('/dashboard')
           } else {
-            this.$router.push("/");
+            this.$router.push('/')
           }
         } else {
-          // Si la connexion échoue, affichez une alerte
-          if (data.message === "Les informations ne sont pas correctes") {
-            alert("Incorrect email or password.");
+          if (data.message === 'Les informations ne sont pas correctes') {
+            toast.error('Incorrect email or password.')
           } else {
-            alert("Something went wrong, please try again.");
+            toast.error('Something went wrong, please try again.')
           }
         }
       } catch (error) {
-        console.error("Login failed", error);
+        console.error('Login failed', error)
+        toast.error('Server error. Please try again.')
       }
     },
   },
-};
+}
 </script>
+
 
 <style scoped></style>

@@ -1,28 +1,37 @@
 <template>
+  
   <div class="result-page">
-    <h1 class="title">Résultats du Sondage</h1>
+    <h1 class="title">My Survey Answers</h1>
 
-    <div v-if="loading" class="loading">Chargement...</div>
+    <div v-if="loading" class="loading">Loading...</div>
     <div v-else-if="error" class="error">{{ error }}</div>
     <div v-else>
       <div v-if="results && results.length">
         <div v-for="(result, index) in results" :key="index" class="result-item">
           <h3>{{ result.question_title }}</h3>
-          <p><strong>Réponse :</strong> {{ result.value }}</p>
+          <p><strong>Response :</strong> {{ result.value }}</p>
         </div>
       </div>
       <div v-else>
-        <p>Aucune réponse trouvée.</p>
+        <p>No answers found.</p>
       </div>
     </div>
+      <!-- Back Home avec Iconify -->
+      <router-link
+      to="/"
+      class="inline-flex items-center text-black hover:text-blue-800 font-medium mb-4 transition duration-200"
+    >
+      <Icon icon="mdi:arrow-left" class="w-5 h-5 mr-2" />
+      Back Home
+    </router-link>
   </div>
 </template>
 
 <script>
-import axios from 'axios';
+
 import { onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
-
+import api from '../services/api'
 export default {
   name: 'ResultPage',
   setup() {
@@ -34,7 +43,7 @@ export default {
 
     onMounted(async () => {
       try {
-        const response = await axios.get(`http://localhost:8000/api/survey/result/${token}`);
+        const response = await api.get(`/survey/result/${token}`);
         console.log('Response data:', response.data);
         results.value = response.data.answers;
       } catch (err) {

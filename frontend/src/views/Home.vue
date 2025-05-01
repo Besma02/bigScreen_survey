@@ -1,25 +1,45 @@
 <template>
-    <div>
+  <div>
     <h2 class="text-2xl text-center font-bold mb-6">Survey Statistics</h2>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- Spinner de chargement -->
+    <div v-if="isLoading" class="flex justify-center items-center h-40">
+      <svg class="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+        <path class="opacity-75" fill="currentColor"
+              d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+      </svg>
+    </div>
+
+    <!-- Contenu uniquement après chargement -->
+    <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <!-- Affichage des 2 premiers pieCharts -->
       <div
-        v-for="(chart, index) in pieCharts"
+        v-for="(chart, index) in pieCharts.slice(0, 2)"
         :key="index"
-        class="bg-white p-4 rounded shadow"
+        class="bg-white p-4 rounded shadow w-full"
       >
         <h3 class="font-semibold mb-2">{{ chart.question }}</h3>
         <PieChart :labels="chart.labels" :data="chart.data" />
       </div>
 
-      <div class="bg-white p-4 rounded shadow col-span-1 md:col-span-2">
+      <!-- Troisième PieChart -->
+      <div
+        v-if="pieCharts.length > 2"
+        class="bg-white p-4 rounded shadow w-full"
+      >
+        <h3 class="font-semibold mb-2">{{ pieCharts[2].question }}</h3>
+        <PieChart :labels="pieCharts[2].labels" :data="pieCharts[2].data" />
+      </div>
+
+      <!-- RadarChart à côté du 3e PieChart -->
+      <div class="bg-white p-4 rounded shadow w-full">
         <h3 class="font-semibold mb-2">Quality (Questions 11 à 15)</h3>
         <RadarChart
-  v-if="radarLabels.length && radarData.length"
-  :labels="radarLabels"
-  :data="radarData"
-/>
-
+          v-if="radarLabels.length && radarData.length"
+          :labels="radarLabels"
+          :data="radarData"
+        />
       </div>
     </div>
   </div>
@@ -27,20 +47,20 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import axios from 'axios'
 import PieChart from '../components/PieChart.vue'
 import RadarChart from '../components/RadarChart.vue'
+import api from '../services/api'
 
 const pieCharts = ref([])
 const radarLabels = ref([])
 const radarData = ref([])
+const isLoading = ref(true)
 
 onMounted(async () => {
-  console.log(localStorage.getItem('token'))
   try {
-    const response = await axios.get('http://localhost:8000/api/admin/dashboard', {
+    const response = await api.get('/admin/dashboard', {
       headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`, // ou ton système de stockage
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
       },
     })
 
@@ -54,13 +74,10 @@ onMounted(async () => {
     // Traitement du radar chart
     radarLabels.value = response.data.radarChart.map(item => item.question)
     radarData.value = response.data.radarChart.map(item => item.average)
-    console.log(response.data.radarChart)
   } catch (error) {
-    console.error('Erreur lors de la récupération des données du dashboard :', error)
+    console.error('Error retrieving dashboard data:', error)
+  } finally {
+    isLoading.value = false
   }
 })
 </script>
-
-<style>
-
-</style>

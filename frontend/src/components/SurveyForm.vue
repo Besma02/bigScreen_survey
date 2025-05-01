@@ -61,7 +61,7 @@
       <div class="text-center mt-8">
         <button
           type="submit"
-          class="px-6 py-3 bg-blue-500 text-white text-lg font-medium rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+          class="px-6 py-3 bg-black w-full text-white text-lg font-medium rounded-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
         >
           Submit
         </button>
@@ -73,10 +73,9 @@
       <div class="bg-white rounded-lg p-8 max-w-md mx-auto text-center shadow-xl">
         <h3 class="text-2xl font-bold text-green-600 mb-4">Merci pour vos réponses !</h3>
         <p class="mb-4">
-          Toute l’équipe de Bigscreen vous remercie pour votre engagement. Grâce à votre
-          investissement, nous vous préparons une application toujours plus facile à utiliser, seul ou en famille.
+          The entire Bigscreen team thanks you for your commitment. Thanks to your investment, we're developing an app that's even easier to use, whether you're alone or with your family.
         </p>
-        <p class="mb-2">Consultez vos réponses ici :</p>
+        <p class="mb-2">View your answers here :</p>
         <p class="text-blue-600 underline break-words mb-6">{{ resultUrl }}</p>
         <button @click="closeModal" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300 flex items-center justify-center gap-2">
   Voir mes réponses ➡️
@@ -88,7 +87,7 @@
 </template>
 <script setup>
 import { ref } from 'vue';
-import axios from 'axios';
+import api from '../services/api'
 import { useToast } from 'vue-toastification';
 import { useRouter } from 'vue-router';
 const router = useRouter();
@@ -139,7 +138,7 @@ const submitSurvey = async () => {
   }));
 
   try {
-    const response = await axios.post('http://localhost:8000/api/survey/submit', {
+    const response = await api.post('/survey/submit', {
       email,
       answers: formattedAnswers
     });
