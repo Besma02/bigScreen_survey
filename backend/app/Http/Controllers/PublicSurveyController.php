@@ -15,16 +15,24 @@ class PublicSurveyController extends Controller
         // Retourner toutes les questions avec leur ID
         return Question::all();
     }
-
-    public function submit(Request $request)
+public function submit(Request $request)
 {
     // Validation du formulaire
     $request->validate([
         'email' => 'required|email',
         'answers' => 'required|array|min:1',
         'answers.*.question_id' => 'required|exists:questions,id',
-        'answers.*.value' => 'required|string', // Assurez-vous que la valeur est bien une chaîne
+        'answers.*.value' => 'required|string',
     ]);
+
+    // Vérifier si cette adresse email a déjà participé
+    $existingSurvey = Survey::where('email', $request->email)->first();
+
+    if ($existingSurvey) {
+        return response()->json([
+            'message' => 'Vous avez déjà participé à ce sondage.',
+        ], 409); // 409 = Conflict
+    }
 
     // Générer un token unique pour l'enquête
     $token = Str::uuid();
@@ -44,7 +52,6 @@ class PublicSurveyController extends Controller
         ]);
     }
 
-    // Réponse de succès avec un lien vers les résultats
     return response()->json([
         'message' => "Merci pour vos réponses !",
         'url' => url("/api/survey/result/{$token}")
@@ -65,6 +72,7 @@ public function result($token)
         'submitted_at' => $survey->created_at->toDateTimeString(), // Formater la date correctement
         'answers' => $survey->answers->map(function ($answer) {
             return [
+                'question_id' => $answer->question->id,
                 'question_title' => $answer->question->title,
                 'value' => $answer->value,
             ];

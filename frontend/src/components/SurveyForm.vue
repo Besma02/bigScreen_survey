@@ -1,6 +1,7 @@
 <template>
   <div class="survey-form px-4 py-8  max-w-4xl mx-auto">
-    <h2 class="text-2xl font-semibold mb-8 text-center">Survey Bigscreen</h2>
+    <h2 class="text-3xl font-semibold mb-8 text-center">Survey Bigscreen</h2>
+    <p class="text-xl font-semibold mb-8 text-center">Please answer all questions and submit the form.</p>
 
     <form @submit.prevent="submitSurvey">
       <!-- Iterate over questions -->
@@ -71,14 +72,14 @@
     <!-- Modal Confirmation -->
     <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div class="bg-white rounded-lg p-8 max-w-md mx-auto text-center shadow-xl">
-        <h3 class="text-2xl font-bold text-green-600 mb-4">Merci pour vos réponses !</h3>
+        <h3 class="text-2xl font-bold text-indigo-600 mb-4">Thank you for your answers !</h3>
         <p class="mb-4">
           The entire Bigscreen team thanks you for your commitment. Thanks to your investment, we're developing an app that's even easier to use, whether you're alone or with your family.
         </p>
         <p class="mb-2">View your answers here :</p>
         <p class="text-blue-600 underline break-words mb-6">{{ resultUrl }}</p>
         <button @click="closeModal" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300 flex items-center justify-center gap-2">
-  Voir mes réponses ➡️
+          See my answers ➡️
 </button>
 
       </div>
@@ -125,30 +126,28 @@ const questions = ref([
 const answers = ref(new Array(questions.value.length).fill(""));
 
 const submitSurvey = async () => {
-  const allAnswered = answers.value.every(answer => answer !== "");
-  if (!allAnswered) {
-    toast.error("Please answer all the questions.");
-    return;
-  }
-
-  const email = answers.value[0];
-  const formattedAnswers = questions.value.map((question, index) => ({
-    question_id: question.id,
-    value: answers.value[index]
-  }));
-
   try {
+    const emailIndex = questions.value.findIndex(q => q.type === 'email');
+    const email = answers.value[emailIndex];
+
+    const formattedAnswers = questions.value.map((question, index) => ({
+      question_id: question.id,
+      value: answers.value[index]
+    }));
+
     const response = await api.post('/survey/submit', {
-      email,
+      email: email,
       answers: formattedAnswers
     });
-    formSubmitted.value = true;
+
     resultUrl.value = response.data.url;
     showModal.value = true;
-    toast.success('Survey submitted successfully!');
   } catch (error) {
-    toast.error('Error submitting the survey.');
-    console.error('Error submitting the survey:', error);
+    if (error.response && error.response.status === 409) {
+      toast.error(error.response.data.message || "Vous avez déjà participé !");
+    } else {
+      toast.error("Une erreur s'est produite lors de l'envoi du formulaire.");
+    }
   }
 };
 
